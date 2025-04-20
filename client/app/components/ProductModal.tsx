@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import axios from "axios";
 import { useCartStore } from "../store/cart-store";
 
 interface Product {
@@ -29,30 +28,20 @@ export default function ProductModal({ productId, onClose }: ProductModalProps) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Modal mounted with productId:", productId); // Debug log
-    
     const fetchProduct = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Fetch all products first
-        console.log("Fetching all products..."); // Debug log
-        const allProductsResponse = await axios.get("https://fakestoreapi.com/products");
-        console.log("All products fetched:", allProductsResponse.data); // Debug log
-        
-        // Find the specific product
-        const foundProduct = allProductsResponse.data.find((p: Product) => p.id === productId);
-        console.log("Found product:", foundProduct); // Debug log
-        
-        if (foundProduct) {
-          setProduct(foundProduct);
-        } else {
-          throw new Error(`Product with ID ${productId} not found`);
+        const response = await fetch(`https://fakestoreapi.com/products/${productId}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch product: ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        setProduct(data);
       } catch (error) {
-        console.error("Error in fetchProduct:", error); // Debug log
-        setError("Failed to fetch product details. Please try again later.");
+        setError(error instanceof Error ? error.message : 'Failed to fetch product details');
       } finally {
         setLoading(false);
       }
