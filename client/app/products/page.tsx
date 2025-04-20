@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductSearch from "../components/product-search";
 import ProductCard from "../components/product-card";
+import CategoryFilter from '../components/category-filter';
+import ProductSort from '../components/category-sort';
 
 interface Product {
   id: number;
@@ -20,6 +22,7 @@ function ProductsContent() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -28,9 +31,13 @@ function ProductsContent() {
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
-        const data = await response.json();
+        const data = await response.json() as Product[];
         setProducts(data);
         setFilteredProducts(data);
+        
+        // Extract unique categories with proper type assertion
+        const uniqueCategories = Array.from(new Set(data.map((p) => p.category))) as string[];
+        setCategories(uniqueCategories);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -42,13 +49,45 @@ function ProductsContent() {
   }, []);
 
   useEffect(() => {
+    let filtered = [...products];
     const searchQuery = searchParams.get("q")?.toLowerCase() || "";
-    const filtered = products.filter(
-      (product) =>
-        product.title.toLowerCase().includes(searchQuery) ||
-        product.description.toLowerCase().includes(searchQuery) ||
-        product.category.toLowerCase().includes(searchQuery)
-    );
+    const category = searchParams.get("category");
+    const sort = searchParams.get("sort");
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchQuery) ||
+          product.description.toLowerCase().includes(searchQuery) ||
+          product.category.toLowerCase().includes(searchQuery)
+      );
+    }
+
+    // Apply category filter
+    if (category && category !== "all") {
+      filtered = filtered.filter((product) => product.category === category);
+    }
+
+    // Apply sorting
+    switch (sort) {
+      case "price-low-high":
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case "price-high-low":
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case "name-a-z":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "name-z-a":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      default:
+        // Default sorting (by ID)
+        filtered.sort((a, b) => a.id - b.id);
+    }
+
     setFilteredProducts(filtered);
   }, [searchParams, products]);
 
@@ -78,6 +117,11 @@ function ProductsContent() {
       {/* Search Bar */}
       <div className="mb-8">
         <ProductSearch />
+      </div>
+
+      <div className="flex items-center justify-between mb-8">
+        <CategoryFilter categories={categories} />
+        <ProductSort />
       </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
