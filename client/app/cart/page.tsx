@@ -15,7 +15,7 @@ export default function CartPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center rounded-lg bg-white p-8 shadow-md">
           <h1 className="mb-4 text-2xl font-bold text-gray-800">Your Cart is Empty</h1>
-          <p className="mb-6 text-gray-600">Looks like you haven't added any products to your cart yet.</p>
+          <p className="mb-6 text-gray-600">Looks like you haven&apos;t added any products to your cart yet.</p>
           <div className="text-center">
             <h3 className="mt-2 text-sm font-semibold text-gray-900">Empty cart</h3>
             <p className="mt-1 text-sm text-gray-500">Get started by adding some products to your cart.</p>
