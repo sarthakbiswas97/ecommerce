@@ -1,47 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function ProductSearch() {
-  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    const formData = new FormData(e.currentTarget);
+    const query = formData.get('search') as string;
+    router.push(`/products?q=${encodeURIComponent(query)}`);
   };
 
   return (
-    <form onSubmit={handleSearch} className="w-full max-w-lg">
+    <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
       <div className="relative">
         <input
           type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          name="search"
+          defaultValue={searchQuery}
           placeholder="Search products..."
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-500"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-            />
-          </svg>
+          Search
         </button>
       </div>
     </form>

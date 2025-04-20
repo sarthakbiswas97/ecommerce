@@ -57,15 +57,28 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       storage: {
         getItem: (name) => {
-          const cookie = document.cookie
-            .split('; ')
-            .find((row) => row.startsWith(`${name}=`));
-          return cookie ? cookie.split('=')[1] : null;
+          if (typeof window === 'undefined') return null;
+          try {
+            const cookie = document.cookie
+              .split('; ')
+              .find((row) => row.startsWith(`${name}=`));
+            if (cookie) {
+              const value = cookie.split('=')[1];
+              return JSON.parse(decodeURIComponent(value));
+            }
+            return null;
+          } catch (error) {
+            console.error('Error parsing auth cookie:', error);
+            return null;
+          }
         },
         setItem: (name, value) => {
-          document.cookie = `${name}=${value}; path=/; max-age=31536000`;
+          if (typeof window === 'undefined') return;
+          const stringValue = JSON.stringify(value);
+          document.cookie = `${name}=${encodeURIComponent(stringValue)}; path=/; max-age=31536000`;
         },
         removeItem: (name) => {
+          if (typeof window === 'undefined') return;
           document.cookie = `${name}=; path=/; max-age=0`;
         },
       },
